@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salon Beauté Douala</title>
+<style>
+  body{font-family:sans-serif;max-width:500px;margin:auto;padding:10px}
+  #chat{height:60vh;overflow:auto;border:1px solid #ccc;padding:8px}
+  .moi{text-align:right;color:#0a58ca}
+  .ia{color:#222}
+  input{width:70%;padding:8px}
+  button{padding:8px}
+</style>
+</head>
+<body>
+<h3>Assistant du salon</h3>
+<div id="chat"></div>
+<input id="q" placeholder="Votre question...">
+<button onclick="envoyer()">Envoyer</button>
+
+<script>
+const historique = [];
+const chat = document.getElementById("chat");
+
+function ajouter(classe, texte){
+  const p = document.createElement("p");
+  p.className = classe;
+  p.textContent = texte;
+  chat.appendChild(p);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function envoyer(){
+  const champ = document.getElementById("q");
+  const texte = champ.value.trim();
+  if(!texte) return;
+  champ.value = "";
+  ajouter("moi", texte);
+  historique.push({role:"user", content:texte});
+  try{
+    const r = await fetch("/api/chat", {
+      method:"POST",
+      headers:{"content-type":"application/json"},
+      body: JSON.stringify({messages: historique})
+    });
+    const d = await r.json();
+    historique.push({role:"assistant", content:d.reponse});
+    ajouter("ia", d.reponse);
+  }catch(e){
+    ajouter("ia", "Erreur de connexion.");
+  }
+}
+</script>
+</body>
